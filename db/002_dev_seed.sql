@@ -1,0 +1,16 @@
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'evidencebench') THEN
+    CREATE ROLE evidencebench LOGIN PASSWORD 'evidencebench' NOSUPERUSER NOCREATEDB NOCREATEROLE;
+  END IF;
+END
+$$;
+
+GRANT CONNECT ON DATABASE evidencebench TO evidencebench;
+GRANT USAGE ON SCHEMA public TO evidencebench;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO evidencebench;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO evidencebench;
+
+INSERT INTO tenants (id, name)
+VALUES ('00000000-0000-0000-0000-000000000001', 'Local Development')
+ON CONFLICT (id) DO NOTHING;

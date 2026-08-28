@@ -18,8 +18,12 @@ dependencies = [
   "sqlalchemy[asyncio]>=2.0.37,<3",
   "structlog>=25.1,<26",
   "tenacity>=9,<10",
+  "typer>=0.15,<1",
   "uvicorn[standard]>=0.34,<1",
 ]
+
+[project.scripts]
+evidencebench = "evidencebench.cli:app"
 
 [project.optional-dependencies]
 dev = [
@@ -36,6 +40,7 @@ packages = ["src/evidencebench"]
 addopts = "-q"
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = ["integration: requires a real PostgreSQL + pgvector database"]
 
 [tool.ruff]
 line-length = 100
@@ -46,4 +51,3 @@ select = ["E", "F", "I", "B", "UP", "ASYNC"]
 python_version = "3.11"
 strict = true
 packages = ["evidencebench"]
-

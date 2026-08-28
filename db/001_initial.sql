@@ -14,15 +14,18 @@ CREATE TABLE documents (
   sha256 char(64) NOT NULL,
   title text,
   status text NOT NULL CHECK (status IN ('pending', 'processing', 'ready', 'failed')),
+  error_message text,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (tenant_id, sha256)
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, sha256),
+  UNIQUE (id, tenant_id)
 );
 
 CREATE TABLE chunks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  document_id uuid NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  document_id uuid NOT NULL,
   ordinal integer NOT NULL CHECK (ordinal >= 0),
   page integer CHECK (page > 0),
   content text NOT NULL,
@@ -30,17 +33,23 @@ CREATE TABLE chunks (
   embedding vector(1024) NOT NULL,
   search_vector tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  UNIQUE (document_id, ordinal)
+  UNIQUE (document_id, ordinal),
+  FOREIGN KEY (document_id, tenant_id) REFERENCES documents(id, tenant_id) ON DELETE CASCADE
 );
 
 CREATE INDEX chunks_tenant_document_idx ON chunks (tenant_id, document_id);
 CREATE INDEX chunks_search_idx ON chunks USING gin (search_vector);
 CREATE INDEX chunks_embedding_hnsw_idx ON chunks USING hnsw (embedding vector_cosine_ops);
 
+ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chunks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tenants FORCE ROW LEVEL SECURITY;
 ALTER TABLE documents FORCE ROW LEVEL SECURITY;
 ALTER TABLE chunks FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_self ON tenants
+  USING (id = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (id = current_setting('app.tenant_id', true)::uuid);
 CREATE POLICY tenant_documents ON documents
   USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
   WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);

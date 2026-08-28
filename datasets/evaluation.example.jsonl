@@ -1,0 +1,2 @@
+{"case_id":"refund-policy","question":"What is the refund period?","relevant_chunk_ids":["replace-after-ingestion"],"should_abstain":false}
+{"case_id":"unsupported-question","question":"What is the CEO's favorite color?","relevant_chunk_ids":[],"should_abstain":true}
