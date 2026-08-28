@@ -15,6 +15,8 @@ measurable contracts rather than prompt-writing concerns.
 
 ## Retrieval path
 
+ s
+
 ```text
 query ─┬─▶ pgvector HNSW ─┐
        └─▶ PostgreSQL FTS ─┴─▶ RRF ─▶ evidence gate
